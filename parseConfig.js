@@ -149,7 +149,7 @@ export default async function parseConfig({ defaults: defaultsIn = {}, clips, ar
         cutTo = Math.min(cutTo, fileDuration);
         assert(cutFrom < cutTo, 'cutFrom must be lower than cutTo');
 
-        const inputDuration = cutTo - cutFrom;
+        const inputDuration = parseFloat((cutTo - cutFrom).toFixed(3));
 
         const isRotated = rotation === 90 || rotation === 270;
         const inputWidth = isRotated ? heightIn : widthIn;
@@ -197,7 +197,7 @@ export default async function parseConfig({ defaults: defaultsIn = {}, clips, ar
         cutTo = Math.min(cutTo, fileDuration);
         assert(cutFrom < cutTo, 'cutFrom must be lower than cutTo');
 
-        const inputDuration = cutTo - cutFrom;
+        const inputDuration = parseFloat((cutTo - cutFrom).toFixed(3));
 
         const speedFactor = clipDuration / inputDuration;
 

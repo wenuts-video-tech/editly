@@ -39,6 +39,7 @@ async function Editly(config = {}) {
     audioNorm,
     outputVolume,
     customOutputArgs,
+    pass = 2,
 
     ffmpegPath = 'ffmpeg',
     ffprobePath = 'ffprobe',
@@ -182,19 +183,25 @@ async function Editly(config = {}) {
       return customOutputArgs;
     }
 
+    console.debug('pass = ', pass);
+
     // https://superuser.com/questions/556029/how-do-i-convert-a-video-to-gif-using-ffmpeg-with-reasonable-quality
     const videoOutputArgs = isGif ? [
       '-vf', `format=rgb24,fps=${fps},scale=${width}:${height}:flags=lanczos,split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse`,
       '-loop', 0,
-    ] : [
+    ] : 
+    // pass1
+      (pass == 1 ? [
+      '-c:v','png',
+      ] : [
+    // pass2
       '-vf', 'format=yuv420p',
       '-vcodec', 'libx264',
       '-profile:v', 'high',
       ...(fast ? ['-preset:v', 'ultrafast'] : ['-preset:v', 'medium']),
       '-crf', '18',
-
       '-movflags', 'faststart',
-    ];
+      ]);
 
     const audioOutputArgs = audioFilePath ? ['-acodec', 'aac', '-b:a', '128k'] : [];
 
@@ -381,7 +388,6 @@ async function Editly(config = {}) {
     if (verbose) console.log('Cleanup');
     if (frameSource1) await frameSource1.close();
     if (frameSource2) await frameSource2.close();
-    if (!keepTmp) await fsExtra.remove(tmpDir);
   }
 
   try {
@@ -389,6 +395,12 @@ async function Editly(config = {}) {
     await outProcess;
   } catch (err) {
     if (outProcessExitCode !== 0 && !err.killed) throw err;
+  }
+
+  try {
+    if (!keepTmp) await fsExtra.remove(tmpDir);
+  } catch (err) {
+    console.log('Cleanup err', err);
   }
 
   console.log();
