@@ -26,8 +26,8 @@ async function validateArbitraryAudio(audio, allowRemoteRequests) {
     for (const { path, cutFrom, cutTo, start } of audio) {
       await assertFileValid(path, allowRemoteRequests);
 
-      if (cutFrom != null && cutTo != null) assert(cutTo > cutFrom);
-      if (cutFrom != null) assert(cutFrom >= 0);
+      if (cutFrom != null && cutTo != null) assert(parseFloat(cutTo) > parseFloat(cutFrom));
+      if (cutFrom != null) assert(parseFloat(cutFrom) >= 0);
       if (cutTo != null) assert(cutTo >= 0);
       assert(start == null || start >= 0, `Invalid "start" ${start}`);
     }
@@ -149,7 +149,7 @@ export default async function parseConfig({ defaults: defaultsIn = {}, clips, ar
         cutTo = Math.min(cutTo, fileDuration);
         assert(cutFrom < cutTo, 'cutFrom must be lower than cutTo');
 
-        const inputDuration = parseFloat((cutTo - cutFrom).toFixed(3));
+        const inputDuration = parseFloat((parseFloat(cutTo) - parseFloat(cutFrom)).toFixed(3));
 
         const isRotated = rotation === 90 || rotation === 270;
         const inputWidth = isRotated ? heightIn : widthIn;
@@ -176,7 +176,7 @@ export default async function parseConfig({ defaults: defaultsIn = {}, clips, ar
 
       // This feature allows the user to show another layer overlayed (or replacing) parts of the lower layers (start - stop)
       const layerDuration = ((stop || clipDuration) - start);
-      assert(layerDuration > 0 && layerDuration <= clipDuration, `Invalid start ${start} or stop ${stop} (${clipDuration})`);
+      assert(layerDuration > 0 && layerDuration <= clipDuration, `Invalid ${type} ${path} layerDuration=${layerDuration}, start ${start} or stop ${stop} (${clipDuration})`);
       // TODO Also need to handle video layers (speedFactor etc)
       // TODO handle audio in case of start/stop
 
@@ -186,18 +186,18 @@ export default async function parseConfig({ defaults: defaultsIn = {}, clips, ar
         const { duration: fileDuration } = await readAudioFileInfo(ffprobePath, path);
         let { cutFrom, cutTo } = layer;
 
-        // console.log({ cutFrom, cutTo, fileDuration, clipDuration });
+         //console.log({ cutFrom, cutTo, fileDuration, clipDuration });
 
         if (!cutFrom) cutFrom = 0;
         cutFrom = Math.max(cutFrom, 0);
         cutFrom = Math.min(cutFrom, fileDuration);
 
-        if (!cutTo) cutTo = cutFrom + clipDuration;
+        if (!cutTo) cutTo = parseFloat(cutFrom) + clipDuration;
         cutTo = Math.max(cutTo, cutFrom);
         cutTo = Math.min(cutTo, fileDuration);
-        assert(cutFrom < cutTo, 'cutFrom must be lower than cutTo');
+        assert(parseFloat(cutFrom) < parseFloat(cutTo), 'cutFrom must be lower than cutTo');
 
-        const inputDuration = parseFloat((cutTo - cutFrom).toFixed(3));
+        const inputDuration = parseFloat((parseFloat(cutTo) - parseFloat(cutFrom)).toFixed(3));
 
         const speedFactor = clipDuration / inputDuration;
 
@@ -224,6 +224,7 @@ export default async function parseConfig({ defaults: defaultsIn = {}, clips, ar
       // This is useful so we can have audio start relative to their parent clip's start time
       if (type === 'detached-audio') {
         const { cutFrom, cutTo, mixVolume } = layer;
+        console.log({cutFrom, cutTo, mixVolume});
         if (!detachedAudioByClip[clipIndex]) detachedAudioByClip[clipIndex] = [];
         detachedAudioByClip[clipIndex].push({ path, cutFrom, cutTo, mixVolume, start });
         return undefined; // Will be filtered out

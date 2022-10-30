@@ -358,11 +358,13 @@ async function Editly(config = {}) {
         outFrameData = frameSource1Data;
       }
 
+      /*
       if (verbose) {
         if (isInTransition) console.log('Writing frame:', totalFramesWritten, 'from clip', transitionFromClipId, `(frame ${fromClipFrameAt})`, 'to clip', getTransitionToClipId(), `(frame ${toClipFrameAt} / ${transitionNumFramesSafe})`, currentTransition.name, `${currentTransition.duration}s`);
         else console.log('Writing frame:', totalFramesWritten, 'from clip', transitionFromClipId, `(frame ${fromClipFrameAt})`);
         // console.log(outFrameData.length / 1e6, 'MB');
       }
+      */
 
       const nullOutput = false;
 
