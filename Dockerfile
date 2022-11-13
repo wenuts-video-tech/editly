@@ -1,61 +1,31 @@
-FROM jrottenberg/ffmpeg:4.3.1-ubuntu1804
+#
+# Dockerfile for editly
+#
 
-WORKDIR /app
+FROM node:lts-bullseye
+MAINTAINER EasyPi Software Foundation
 
-# Ensures tzinfo doesn't ask for region info.
-ENV DEBIAN_FRONTEND noninteractive
+ARG EDITLY_VERSION=0.13.0
+ARG FFMPEG_VERSION=5.1.1
 
-## INSTALL NODE VIA NVM
+RUN set -xe \
+ && apt update \
+ && apt install -y curl dumb-init fonts-noto-cjk xvfb xz-utils libpango-1.0-0 libpangocairo-1.0-0 \
+ && curl -sSL https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz \
+    | tar xJC /usr/bin/ ffmpeg-${FFMPEG_VERSION}-amd64-static/ffprobe ffmpeg-${FFMPEG_VERSION}-amd64-static/ffmpeg --strip 1 \
+ && ffmpeg -version \
+ && ffprobe -version \
+ && rm -rf /var/lib/apt/lists/*
 
-RUN apt-get update && apt-get install -y \
-    dumb-init \
-    xvfb
+RUN set -xe \
+ && apt update \
+ && apt install -y libxext-dev libxi-dev xserver-xorg-dev \
+ && ln -sf /usr/bin/python3 /usr/bin/python \
+ && npm install --global --unsafe-perm https://github.com/wenuts-video-tech/editly.git \
+ && apt remove -y libxext-dev libxi-dev xserver-xorg-dev \
+ && rm -rf /var/lib/apt/lists/*
 
-# Source: https://gist.github.com/remarkablemark/aacf14c29b3f01d6900d13137b21db3a
-# replace shell with bash so we can source files
-RUN rm /bin/sh && ln -s /bin/bash /bin/sh
+WORKDIR /data
 
-# update the repository sources list
-# and install dependencies
-RUN apt-get update \
-    && apt-get install -y curl \
-    && apt-get -y autoclean
-
-# nvm environment variables
-ENV NVM_VERSION 0.37.2
-ENV NVM_DIR /usr/local/nvm
-ENV NODE_VERSION 14.4.0
-
-# install nvm
-# https://github.com/creationix/nvm#install-script
-RUN mkdir -p $NVM_DIR \
-    && curl --silent -o- https://raw.githubusercontent.com/creationix/nvm/v${NVM_VERSION}/install.sh | bash
-
-# install node and npm
-RUN source ${NVM_DIR}/nvm.sh \
-    && nvm install $NODE_VERSION \
-    && nvm alias default $NODE_VERSION \
-    && nvm use default
-
-# add node and npm to path so the commands are available
-ENV NODE_PATH ${NVM_DIR}/v${NODE_VERSION}/lib/node_modules
-ENV PATH      ${NVM_DIR}/versions/node/v${NODE_VERSION}/bin:$PATH
-
-# confirm installation
-RUN node -v
-RUN npm -v
-
-## INSTALL EDITLY
-
-# ## Install app dependencies
-COPY package.json /app/
-RUN npm install
-
-# Add app source
-COPY . /app
-
-# Ensure `editly` binary available in container
-RUN npm link
-
-ENTRYPOINT ["/usr/bin/dumb-init", "--", "xvfb-run", "--server-args", "-screen 0 1280x1024x24 -ac"]
-CMD [ "editly" ]
+ENTRYPOINT ["/usr/bin/dumb-init", "--", "xvfb-run", "--server-args", "-screen 0 1280x1024x24 -ac", "editly"]
+CMD ["--help"]
