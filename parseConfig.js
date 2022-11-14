@@ -15,6 +15,21 @@ import { calcTransition } from './transitions.js';
 
 const dirname = fileURLToPath(new URL('.', import.meta.url));
 
+function subTime(a, b) {
+  return parseFloat((parseFloat(a) - parseFloat(b)).toFixed(3));
+}
+
+function addTime(a, b) {
+  return parseFloat((parseFloat(a) + parseFloat(b)).toFixed(3));
+}
+
+function decimal(a) {
+  if (a === undefined) {
+    return undefined;
+  }
+  return parseFloat(parseFloat(a).toFixed(3));
+}
+
 // Cache
 const loadedFonts = [];
 
@@ -26,20 +41,12 @@ async function validateArbitraryAudio(audio, allowRemoteRequests) {
     for (const { path, cutFrom, cutTo, start } of audio) {
       await assertFileValid(path, allowRemoteRequests);
 
-      if (cutFrom != null && cutTo != null) assert(parseFloat(cutTo) > parseFloat(cutFrom));
-      if (cutFrom != null) assert(parseFloat(cutFrom) >= 0);
+      if (cutFrom != null && cutTo != null) assert(decimal(cutTo) > decimal(cutFrom));
+      if (cutFrom != null) assert(decimal(cutFrom) >= 0);
       if (cutTo != null) assert(cutTo >= 0);
       assert(start == null || start >= 0, `Invalid "start" ${start}`);
     }
   }
-}
-
-function subTime(a, b) {
-  return parseFloat((parseFloat(a) - parseFloat(b)).toFixed(3));
-}
-
-function addTime(a, b) {
-  return parseFloat((parseFloat(a) + parseFloat(b)).toFixed(3));
 }
 
 export default async function parseConfig({ defaults: defaultsIn = {}, clips, arbitraryAudio: arbitraryAudioIn, backgroundAudioPath, loopAudio, allowRemoteRequests, ffprobePath }) {
@@ -146,10 +153,10 @@ export default async function parseConfig({ defaults: defaultsIn = {}, clips, ar
         ...globalLayerDefaults,
         ...thisLayerDefaults,
         ...layerIn,
-        cutFrom: layerIn.cutFrom !== undefined ? parseFloat(layerIn.cutFrom) : undefined,
-        cutTo: layerIn.cutTo !== undefined ? parseFloat(layerIn.cutTo) : undefined,
-        start: layerIn.start !== undefined ? parseFloat(layerIn.start) : undefined,
-        stop: layerIn.stop !== undefined ? parseFloat(layerIn.stop) : undefined,
+        cutFrom: decimal(layerIn.cutFrom),
+        cutTo: decimal(layerIn.cutTo),
+        start: decimal(layerIn.start),
+        stop: decimal(layerIn.stop),
       };
       const { type, path } = layer;
 
