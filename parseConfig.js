@@ -15,19 +15,19 @@ import { calcTransition } from './transitions.js';
 
 const dirname = fileURLToPath(new URL('.', import.meta.url));
 
-function subTime(a, b) {
-  return parseFloat((parseFloat(a) - parseFloat(b)).toFixed(3));
-}
-
-function addTime(a, b) {
-  return parseFloat((parseFloat(a) + parseFloat(b)).toFixed(3));
-}
-
 function decimal(a) {
   if (a === undefined) {
     return undefined;
   }
   return parseFloat(parseFloat(a).toFixed(3));
+}
+
+function subTime(a, b) {
+  return decimal(decimal(a) - decimal(b));
+}
+
+function addTime(a, b) {
+  return decimal(decimal(a) + decimal(b));
 }
 
 // Cache
