@@ -128,7 +128,9 @@ export default async function parseConfig({ defaults: defaultsIn = {}, clips, ar
 
   let clipsOut = await pMap(clips, async (clip, clipIndex) => {
     assert(typeof clip === 'object', '"clips" must contain objects with one or more layers');
-    const { transition: userTransition, duration: userClipDuration, layers: layersIn } = clip;
+    const { transition: userTransition, duration: userClipDuration_, layers: layersIn } = clip;
+
+    const userClipDuration = decimal(userClipDuration_);
 
     // Validation
     let layers = layersIn;
